@@ -117,9 +117,13 @@ python end2end.py --query-type audio_to_text --model stepfun-ai/Step-Audio-2-min
 
 Models will be cached in `~/.cache/huggingface/hub/` for future use.
 
-**Supported model**:
+**Supported models and recommended task mapping** (matching upstream Step-Audio2):
 
-- `stepfun-ai/Step-Audio-2-mini`
+| Task | Recommended Checkpoint | `--query-type` | Default Deploy Config |
+| --- | --- | --- | --- |
+| **ASR / S2ST** | `stepfun-ai/Step-Audio-2-mini` | `audio_to_text`, `audio_to_audio` | `step_audio_2_asr.yaml` / `step_audio_2.yaml` |
+| **Verbatim TTS** | `stepfun-ai/Step-Audio-2-mini-Base` | `text_to_audio` | `step_audio_2_base.yaml` |
+| **Deep-Thinking Speech (2-pass)** | `stepfun-ai/Step-Audio-2-mini-Think` | `think` | `step_audio_2_think.yaml` |
 
 ### Option 2: Manual Download (for offline use)
 
@@ -174,12 +178,17 @@ python end2end.py --query-type audio_to_text \
 
 **Output**: Text transcription saved to `output_step_audio2/00000_text.txt`
 
-### 2. Text to Audio (TTS - Speech Synthesis)
+### 2. Text to Audio (TTS - Speech Synthesis, Recommended: `Step-Audio-2-mini-Base`)
 
-Convert text to speech:
+Convert text to speech using upstream `examples-base.py`'s two-segment `prompt_token_ids` encoding:
 
 ```bash
-# Basic TTS (model auto-downloads)
+# Recommended: Step-Audio-2-mini-Base (default for --query-type text_to_audio)
+python end2end.py --query-type text_to_audio \
+    --text "你好呀，我是你的AI助手，很高兴认识你！" \
+    --model stepfun-ai/Step-Audio-2-mini-Base
+
+# Or with Step-Audio-2-mini
 python end2end.py --query-type text_to_audio \
     --text "Hello, this is a test of Step Audio 2 synthesis." \
     --model stepfun-ai/Step-Audio-2-mini
@@ -192,23 +201,32 @@ python end2end.py --query-type text_to_audio \
 - Text: `output_step_audio2/00000_text.txt`
 - Audio: `output_step_audio2/00000_output.wav` (24kHz)
 
-### 3. Audio to Audio (Voice Conversion)
+### 3. Audio to Audio (S2ST)
 
 Process input audio and generate output audio:
 
 ```bash
-# Basic voice conversion (model auto-downloads)
+# Speech-to-speech (Step-Audio-2-mini)
 python end2end.py --query-type audio_to_audio \
     --audio-path /path/to/source_audio.wav \
     --model stepfun-ai/Step-Audio-2-mini
 ```
 
-This mode:
+### 4. Deep-Thinking Speech Dialogue (2-pass, `Step-Audio-2-mini-Think`)
 
-1. Understands the content in `--audio-path` (source)
-2. Generates audio output with the default voice
+Matches upstream `examples-think.py`: Pass 1 generates `<think>...</think>` reasoning text and Pass 2 appends `</think>\n\n<tts_start>` to generate the spoken response stopping at `<|EOT|>` (`151665`):
 
-**Note**: To use a custom speaker voice, set the `STEP_AUDIO2_DEFAULT_PROMPT_WAV` environment variable.
+```bash
+python end2end.py --query-type think \
+    --audio-path /path/to/question.wav \
+    --model stepfun-ai/Step-Audio-2-mini-Think
+```
+
+**Output**:
+
+- Reasoning trace: `output_step_audio2/00000_think.txt`
+- Final text: `output_step_audio2/00000_text.txt`
+- Final audio: `output_step_audio2/00000_output.wav` (24kHz)
 
 ### Advanced Options
 

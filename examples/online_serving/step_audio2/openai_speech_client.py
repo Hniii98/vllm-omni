@@ -1,12 +1,19 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """OpenAI-compatible client for Step-Audio2 TTS via /v1/audio/speech endpoint.
 
+Defaults to ``stepfun-ai/Step-Audio-2-mini-Base`` (matching upstream
+``examples-base.py`` for verbatim TTS). Start the server with
+``step_audio_2_base.yaml`` and ``step_audio2_base.jinja``. For
+``Step-Audio-2-mini``, pass ``--model stepfun-ai/Step-Audio-2-mini``.
+
 Examples:
-    # Basic TTS
-    python openai_speech_client.py --text "你好世界"
+    # Basic TTS (Step-Audio-2-mini-Base)
+    python openai_speech_client.py --text "你好呀，我是你的AI助手，很高兴认识你！"
 
     # With custom system prompt
-    python openai_speech_client.py --text "Hello, how are you?" \
-        --instructions "You are a friendly assistant."
+    python openai_speech_client.py --text "Hello, welcome to Step-Audio2." \
+        --instructions "Read this paragraph at a natural pace."
 
     # Save to specific file
     python openai_speech_client.py --text "你好世界" -o output.wav
@@ -18,6 +25,7 @@ import httpx
 
 DEFAULT_API_BASE = "http://localhost:8092"
 DEFAULT_API_KEY = "EMPTY"
+DEFAULT_MODEL = "stepfun-ai/Step-Audio-2-mini-Base"
 
 
 def run_tts_generation(args) -> None:
@@ -87,8 +95,8 @@ def parse_args():
         "--model",
         "-m",
         type=str,
-        default="stepfun-ai/Step-Audio-2-mini",
-        help="Model name/path",
+        default=DEFAULT_MODEL,
+        help=f"Model name/path (default: {DEFAULT_MODEL})",
     )
     parser.add_argument(
         "--text",
